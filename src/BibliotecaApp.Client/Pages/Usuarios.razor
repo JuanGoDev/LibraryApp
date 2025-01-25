@@ -1,0 +1,120 @@
+@page "/usuarios"
+@using BibliotecaApp.Shared.Entities
+@inject HttpClient Http
+
+<div class="main-title">
+    <h1>Usuarios</h1>
+</div>
+
+<div class="grid-container">
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Edad</th>
+                <th>Lugar de Residencia</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (usuarios != null)
+            {
+                @foreach (var usuario in usuarios)
+                {
+                    <tr>
+                        <td>@usuario.Id</td>
+                        <td>@usuario.Nombre</td>
+                        <td>@usuario.Edad</td>
+                        <td>@usuario.LugarResidencia</td>
+                        <td>
+                            <span class="estado @(usuario.PuedePrestarLibros ? "activo" : "inactivo")">
+                                @(usuario.PuedePrestarLibros ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<UsuarioDTO>? usuarios;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/usuarios");
+            if (response.IsSuccessStatusCode)
+            {
+                usuarios = await response.Content.ReadFromJsonAsync<List<UsuarioDTO>>();
+            }
+            else 
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                error = $"Error: {response.StatusCode} - {content}";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Error al cargar los libros: {ex.Message}";
+            Console.WriteLine(error);
+        }
+    }
+}
+
+<style>
+
+.main-title {
+    padding: 1rem;
+}
+
+.main-title h1 {
+    margin-bottom: 0 !important;
+}
+
+.grid-container {
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.modern-table th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.estado {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.activo {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.inactivo {
+    background-color: #e74c3c;
+    color: white;
+}
+</style> 

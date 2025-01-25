@@ -1,0 +1,122 @@
+@page "/libros"
+@inject HttpClient Http
+
+<div class="main-title">
+    <h1>Libros Disponibles</h1>
+</div>
+<div class="grid-container">
+    @if (error != null)
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Nombre del Libro</th>
+                <th>Autor</th>
+                <th>Ejemplares Disponibles</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (libros != null)
+            {
+                @foreach (var libro in libros)
+                {
+                    <tr>
+                        <td>@libro.Nombre</td>
+                        <td>@libro.AutorNombre</td>
+                        <td>@libro.CantidadEjemplares</td>
+                        <td>
+                            <span class="estado @(libro.DisponibleParaPrestamo ? "disponible" : "no-disponible")">
+                                @(libro.DisponibleParaPrestamo ? "Disponible" : "No Disponible")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<LibroDTO>? libros;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/libros");
+            if (response.IsSuccessStatusCode)
+            {
+                libros = await response.Content.ReadFromJsonAsync<List<LibroDTO>>();
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                error = $"Error: {response.StatusCode} - {content}";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Error al cargar los libros: {ex.Message}";
+            Console.WriteLine(error);
+        }
+    }
+}
+
+<style>
+
+.main-title {
+    padding: 1rem;
+}
+
+.main-title h1 {
+    margin-bottom: 0 !important;
+}
+
+.grid-container {
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.modern-table th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.estado {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.disponible {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.no-disponible {
+    background-color: #e74c3c;
+    color: white;
+}
+</style> 
